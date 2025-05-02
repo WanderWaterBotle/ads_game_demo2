@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claimed Rewards List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #0b3c91;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+      padding-top: 50px;
+    }
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+      max-width: 700px;
+      background: #1e3c72;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #345;
+    }
+    th {
+      background: #0b3c91;
+      color: #ffd700;
+    }
+    tr:hover {
+      background-color: #345;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Claimed Rewards</h1>
+<table id="rewardsTable">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Reward</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<script>
+// 直接请求后端获取领奖列表
+fetch('/api/claimed_rewards')
+  .then(res => res.json())
+  .then(data => {
+    const tbody = document.querySelector('#rewardsTable tbody');
+    data.list.forEach(entry => {
+      const row = document.createElement('tr');
+      row.innerHTML = `<td>${entry.username}</td><td>${entry.email}</td><td>${entry.reward}</td>`;
+      tbody.appendChild(row);
+    });
+  });
+</script>
+
+</body>
+</html>

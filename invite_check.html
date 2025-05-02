@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invitation Check</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background: #0b3c91; color: #fff; font-family: Arial; text-align: center; padding-top: 100px; }
+    input { padding: 10px; border-radius: 10px; border: none; width: 200px; margin-top: 10px; }
+    button { padding: 10px 20px; margin: 10px; border: none; border-radius: 20px; cursor: pointer; }
+    .yes { background: green; color: #fff; }
+    .no { background: gray; color: #fff; }
+  </style>
+</head>
+<body>
+  <h2>Did someone invite you?</h2>
+  <input type="text" id="inviteCode" placeholder="Enter invite code"><br>
+  <button class="yes" onclick="submitCode()">Yes, Confirm</button>
+  <button class="no" onclick="skip()">No, Continue</button>
+
+<script>
+const username = localStorage.getItem('username');
+if (!username) {
+  alert("No user detected, please log in again!");
+  window.location.href = "index.html";
+}
+
+function submitCode() {
+  const code = document.getElementById('inviteCode').value.trim();
+  if (!code) {
+    alert("Please enter a code.");
+    return;
+  }
+  fetch('/api/verify_invite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, username })
+  }).then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+        window.location.href = 'competition.html';
+      } else {
+        alert(data.message);
+      }
+    });
+}
+
+function skip() {
+  fetch('/api/skip_invite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username })
+  }).then(() => {
+    window.location.href = 'competition.html';
+  });
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claim Your Reward</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #0b3c91;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+      padding-top: 100px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      width: 250px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 25px;
+      background: orange;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #status {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Claim Your Reward</h1>
+<p>Please enter your PayPal email to receive the reward.</p>
+
+<input type="email" id="emailInput" placeholder="Enter your email" required>
+<br>
+<button onclick="submitClaim()">Submit</button>
+
+<div id="status"></div>
+
+<script>
+const username = localStorage.getItem('username');
+if (!username) {
+  alert("No user detected, please login again!");
+  window.location.href = "index.html";
+}
+
+function submitClaim() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !email.includes('@')) {
+    alert("Please enter a valid email address.");
+    return;
+  }
+
+  fetch('/api/claim_reward_with_email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById('status').innerHTML = "Submission successful! 🎉<br>Your reward will be sent to your PayPal account within 1~3 business days.<br><br><button onclick='goBack()'>Return,your data of last competition will be deleted for safety</button>";
+    } else {
+      document.getElementById('status').innerText = data.message;
+    }
+  });
+}
+
+function goBack() {
+  window.location.href = 'start.html';
+}
+</script>
+
+</body>
+</html>

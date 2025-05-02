@@ -1,0 +1,148 @@
+{
+  "users": [
+    {
+      "username": "Test-user1",
+      "password": "1",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Test-user",
+      "password": "1",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "sss",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "AppleIntelligence",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "T_lu",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "hello",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "aaa",
+      "password": "Lu",
+      "paid": false,
+      "is_new": true
+    },
+    {
+      "username": "bbb",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "DDD",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "xxx",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "OOOOO",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "nbnb",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "aaasx",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Bro",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "ThomasLua",
+      "password": "Lht123456",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "sssas",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "sssssss",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "thomaszz",
+      "password": "1",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Bros",
+      "password": "Lua",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "tl1",
+      "password": "Lu",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Yuna",
+      "password": "Sht12345678",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Yuna2",
+      "password": "Sht12345678",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "Yunav",
+      "password": "Sht12345678",
+      "paid": false,
+      "is_new": false
+    },
+    {
+      "username": "19279826183",
+      "password": "a",
+      "paid": true,
+      "is_new": false
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ad Competition · In Progress</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background:#0b3c91;color:#fff;font-family:Arial;padding:20px;position:relative; }
+    .leaderboard{background:#1e3c72;padding:15px;border-radius:10px;margin-top:20px;max-height:250px;overflow-y:auto;}
+    .entry{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #345;}
+    .highlight{color:yellow;font-weight:bold;}
+    .actions,.search-bar{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    button{padding:10px 20px;border:none;border-radius:20px;cursor:pointer;}
+    .btn-watch{background:orange;color:#fff;}
+    .btn-invite{background:green;color:#fff;}
+    .btn-exit{background:red;color:#fff;}
+    input[type="text"]{padding:8px;border-radius:15px;border:none;width:150px;}
+    .status-bar{text-align:center;margin-top:20px;}
+    .overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);color:#fff;display:none;flex-direction:column;justify-content:center;align-items:center;font-size:2rem;z-index:9999;}
+    .overlay small{font-size:1rem;margin-top:10px;}
+  </style>
+</head>
+<body>
+  <h1>Ad Competition · In Progress</h1>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search player">
+    <button onclick="searchPlayer()">Search</button>
+  </div>
+
+  <div class="leaderboard" id="leaderboard"><h3>Leaderboard</h3></div>
+
+  <div class="actions">
+    <button class="btn-watch" onclick="watchAd()">Watch Ad</button>
+    <button class="btn-invite" onclick="generateInvite()">Invite Friend</button>
+    <button class="btn-exit"   onclick="exitGame()">Exit</button>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    Prize Pool: $0.00 | Players: 0 | Time Left: <span id="countdown">--:--:--</span>
+  </div>
+
+  <div class="overlay" id="gameOverOverlay">
+    <h2>GAME OVER</h2>
+    <div id="result"></div>
+    <small>Redirecting to start page…</small>
+  </div>
+
+<script>
+/* ---------- 登录 + 支付校验 ---------- */
+const username = localStorage.getItem('username');
+if (!username){
+  alert("No user detected, please login."); 
+  window.location.href = "index.html";
+}else{
+  fetch('/api/check_paid',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    if(!d.paid){
+      alert("Payment required to join the competition. Redirecting...");
+      window.location.href = "rules.html";
+    }
+  });
+}
+
+/* ---------- 广告观看 ---------- */
+function watchAd() {
+  fetch('/api/leaderboard')
+    .then(res => res.json())
+    .then(data => {
+      const player = data.players.find(p => p.username === username);
+      if (!player) {
+        alert("Player not found on leaderboard.");
+        return;
+      }
+      if (player.watching_ad === true) {
+        alert("You are already watching an ad. Please complete it first.");
+      } else {
+        // 不再调用 /api/start_ad！
+        window.location.href = 'ad.html';
+      }
+    });
+}
+
+
+
+/* ---------- 生成邀请码 ---------- */
+function generateInvite(){
+  fetch('/api/generate_invite',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username})
+  })
+  .then(r=>r.json())
+  .then(d=>alert("Copy this invite code and send to your friend: "+d.invite_code));
+}
+
+/* ---------- 退出比赛 ---------- */
+function exitGame(){
+  fetch('/api/exit',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    alert(d.message);
+    window.location.href='start.html';
+  });
+}
+
+/* ---------- 搜索玩家 ---------- */
+function searchPlayer(){
+  const name=document.getElementById('searchInput').value.trim();
+  const entries=document.querySelectorAll('.entry');
+  let found=false;
+  entries.forEach(e=>{
+    if(e.innerText.includes(name)){
+      e.scrollIntoView({behavior:'smooth',block:'center'});
+      found=true;
+    }
+  });
+  if(!found) alert("Player not found!");
+}
+
+/* ---------- 排行榜 ---------- */
+function refreshLeaderboard(){
+  fetch('/api/leaderboard')
+    .then(r=>r.json())
+    .then(data=>{
+      const board=document.getElementById('leaderboard');
+      board.innerHTML='<h3>Leaderboard</h3>';
+      data.players.sort((a,b)=>b.time-a.time).forEach((p,i)=>{
+        board.innerHTML+=
+          `<div class="entry ${p.username===username?'highlight':''}">
+             <span>${i+1}. ${p.username}</span><span>${p.time} min · x${p.invites}</span>
+           </div>`;
+      });
+    });
+}
+
+/* ---------- 状态栏 ---------- */
+function refreshStatus(){
+  fetch('/api/status')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('statusBar').innerHTML=
+        `Prize Pool: $${d.pool} | Players: ${d.players} | Time Left: <span id="countdown"></span>`;
+      updateCountdown();
+    });
+}
+
+/* ---------- 倒计时 ---------- */
+function updateCountdown(){
+  const now=new Date();
+  const end=new Date();end.setHours(21,50,0,0);
+  const diff=end-now;
+  if(diff<=0){triggerGameOver();return;}
+  const h=String(Math.floor(diff/3.6e6)).padStart(2,'0');
+  const m=String(Math.floor(diff%3.6e6/6e4)).padStart(2,'0');
+  const s=String(Math.floor(diff%6e4/1e3)).padStart(2,'0');
+  document.getElementById('countdown').innerText=`${h}:${m}:${s}`;
+}
+
+/* ---------- GAME OVER ---------- */
+function triggerGameOver(){
+  document.getElementById('gameOverOverlay').style.display='flex';
+  fetch('/api/old_leaderboard',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById('result').innerHTML=d.success
+      ?`You ranked #${d.rank}<br>Reward: $${d.reward}`
+      :d.message;
+    setTimeout(()=>window.location.href='start.html',3000);
+  });
+}
+
+/* ---------- 初始化轮询 ---------- */
+refreshLeaderboard();
+refreshStatus();
+setInterval(refreshLeaderboard,30000);
+setInterval(refreshStatus,30000);
+setInterval(updateCountdown,1000);
+</script>
+</body>
+</html>

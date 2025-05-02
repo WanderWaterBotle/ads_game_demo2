@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Competition Rules</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.paypal.com/sdk/js?client-id=AXC-Yv3OlyKVFCNZAjrwIN_C9H9fvTy075OCnI1OlqITVNJ8LdAwqIZaR_AwudH40zKoLqK4hsiN61-7&currency=USD"></script>
+  <style>
+    body { background: #0b3c91; color: #fff; padding: 20px; font-family: Arial; }
+    .paper { background: #fff8dc; color: #333; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; }
+    button { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; }
+    #paypal-button-container { margin-top: 20px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="paper">
+    <h2>Competition Rules</h2>
+    <p>1. To join the competition, you must pay a <b>1 USD entry fee</b>.</p>
+    <p>2. Due to PayPal fees (~34%) and platform fees (16%), <b>only $0.50</b> per entry goes into the prize pool.</p>
+    <p>3. Watch ads to accumulate time. More time = higher rank.</p>
+    <p>4. Each invite <b>doubles</b> your multiplier (×2), unlimited stacking.</p>
+    <p>5. Prize pool is distributed based on ranking.</p>
+    <p><i>Note: Ad revenue is not directly distributed due to settlement complexity.</i></p>
+
+    <label>
+      <input type="checkbox" id="agree" onclick="checkAgree()"> I agree to the rules (18+)
+    </label>
+
+    <div id="paypal-button-container"></div>
+    <button onclick="testJoin()" style="background: gray;">Test Mode · Skip Payment</button>
+  </div>
+
+<script>
+const username = localStorage.getItem('username');
+if (!username) {
+  alert("No user detected, please log in again!");
+  window.location.href = "index.html";
+} else {
+  fetch('/api/check_paid', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.paid) {
+      alert("You have already paid. Redirecting to the competition...");
+      window.location.href = "competition.html";
+    }
+  });
+}
+
+function checkAgree() {
+  const agree = document.getElementById("agree").checked;
+  document.getElementById("paypal-button-container").style.display = agree ? 'block' : 'none';
+}
+
+paypal.Buttons({
+  createOrder: function(data, actions) {
+    return actions.order.create({
+      purchase_units: [{ amount: { value: '1.00' } }]
+    });
+  },
+  onApprove: function(data, actions) {
+    return actions.order.capture().then(function(details) {
+      fetch('/api/mark_paid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      }).then(() => {
+        fetch('/api/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        }).then(() => {
+          fetch('/api/check_is_new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+          }).then(res => res.json())
+          .then(status => {
+            if (status.is_new) {
+              alert("Payment successful! Proceeding to invitation page.");
+              window.location.href = 'invite_check.html';
+            } else {
+              alert("Welcome back! Entering competition...");
+              window.location.href = 'competition.html';
+            }
+          });
+        });
+      });
+    });
+  }
+}).render('#paypal-button-container');
+
+function testJoin() {
+  fetch('/api/mark_paid', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username })
+  }).then(() => {
+    fetch('/api/join', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    }).then(() => {
+      fetch('/api/check_is_new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      }).then(res => res.json())
+      .then(status => {
+        if (status.is_new) {
+          alert("Test Mode: Proceeding to invitation page.");
+          window.location.href = 'invite_check.html';
+        } else {
+          alert("Test Mode: Entering competition...");
+          window.location.href = 'competition.html';
+        }
+      });
+    });
+  });
+}
+</script>
+</body>
+</html>

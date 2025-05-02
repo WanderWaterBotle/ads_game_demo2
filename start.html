@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Start Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      text-align: center; 
+      padding-top: 30px; 
+      background: #0b3c91; 
+      color: #fff; 
+      font-family: Arial; 
+    }
+    button { 
+      padding: 15px 30px; 
+      font-size: 1.2rem; 
+      border: none; 
+      border-radius: 25px; 
+      background: orange; 
+      color: #fff; 
+      cursor: pointer; 
+      margin-top: 20px;
+    }
+    .old-board { 
+      position: relative; 
+      background: #1e3c72; 
+      width: 350px; 
+      height: 320px;   
+      margin: 20px auto; 
+      padding: 10px; 
+      border-radius: 10px; 
+      overflow: hidden; 
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .entry {
+      height: 30px;    
+      line-height: 30px;
+      border-bottom: 1px solid #345;
+    }
+    .overlay { 
+      position: absolute; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      background: rgba(0,0,0,0.7); 
+      color: #fff; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      border-radius: 10px; 
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+    }
+    small {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome To Ad Competition</h1>
+
+  <div id="yesterdayBoard"></div>
+
+  <button onclick="checkPaymentAndRedirect()">Start Game</button>
+
+<script>
+const username = localStorage.getItem('username');
+if (!username) {
+  alert("No user detected, please log in again!");
+  window.location.href = "index.html";
+}
+
+// 加载昨日排行榜和领奖信息
+function loadYesterdayBoard() {
+  fetch('/api/old_leaderboard', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username })
+  })
+  .then(res => res.json())
+  .then(data => {
+    const boardDiv = document.getElementById('yesterdayBoard');
+    if (!data.success) {
+      boardDiv.innerHTML = `<p>${data.message}</p>`;
+      return;
+    }
+
+    let html = '<div class="old-board">';
+    data.snippet.forEach((p) => {
+      html += `<div class="entry">${p.username} - ${p.time} min</div>`;
+    });
+
+    let remaining = 5 - data.snippet.length;
+    for (let i = 0; i < remaining; i++) {
+      html += `<div class="entry">&nbsp;</div>`;
+    }
+
+    html += `<div class="overlay">
+                <h2>GAME OVER</h2>
+                <p>You ranked #${data.rank}</p>`;
+
+    if (data.reward > 0) {
+      html += `<p>You won $${data.reward}</p>
+               <button id="claimBtn" onclick="goToClaim()">Claim Reward</button>
+               <small>If not claimed today, reward expires!</small>`;
+    } else {
+      html += `<p>No reward earned.</p>`;
+    }
+
+    html += '</div></div>';
+    boardDiv.innerHTML = html;
+  });
+}
+
+// 点击 Claim Reward 按钮跳转到 claim.html
+function goToClaim() {
+  window.location.href = 'claim.html';
+}
+
+// 检查用户支付并跳转到比赛
+function checkPaymentAndRedirect() {
+  fetch('/api/check_paid', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.paid) {
+      fetch('/api/join', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username })
+      }).then(() => {
+        window.location.href = 'competition.html';
+      });
+    } else {
+      window.location.href = 'rules.html';
+    }
+  });
+}
+
+// 页面加载时执行
+loadYesterdayBoard();
+</script>
+
+</body>
+</html>

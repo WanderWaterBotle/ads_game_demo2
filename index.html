@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ad Competition · Login / Register</title>
+  <link rel="icon" href="static/favicon.png" type="image/png">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { background: #0b3c91; color: #fff; font-family: Arial; text-align: center; padding-top: 100px; }
+    input { padding: 10px; margin: 5px; border-radius: 10px; border: none; width: 200px; }
+    button { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; margin-top: 10px; }
+    .main-btn { background: orange; color: #fff; }
+    .switch-btn { background: gray; color: #fff; margin-left: 10px; }
+    #msg { margin-top: 15px; color: yellow; }
+  </style>
+</head>
+<body>
+  <h2 id="formTitle">Login to Ad Competition</h2>
+  <input type="text" id="username" placeholder="Username"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button class="main-btn" onclick="submitForm()" id="mainButton">Login</button>
+  <button class="switch-btn" onclick="switchMode()" id="switchButton">Switch to Register</button>
+  <div id="msg"></div>
+
+<script>
+let isLogin = true;
+
+function switchMode() {
+  isLogin = !isLogin;
+  document.getElementById('formTitle').innerText = isLogin ? "Login to Ad Competition" : "Register for Ad Competition";
+  document.getElementById('mainButton').innerText = isLogin ? "Login" : "Register";
+  document.getElementById('switchButton').innerText = isLogin ? "Switch to Register" : "Switch to Login";
+  document.getElementById('msg').innerText = "";
+}
+
+function submitForm() {
+  const usernameVal = document.getElementById('username').value.trim();
+  const passwordVal = document.getElementById('password').value.trim();
+
+  if (!usernameVal || !passwordVal) {
+    document.getElementById('msg').innerText = "Please enter username and password.";
+    return;
+  }
+
+  const endpoint = isLogin ? '/api/login' : '/api/register';
+  fetch(endpoint, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ username: usernameVal, password: passwordVal })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+      localStorage.setItem('username', usernameVal);
+      if (!isLogin) {
+        // 注册成功，直接跳转到规则页面
+        window.location.href = 'rules.html';
+      } else {
+        // 登录用户跳转到开始页面
+        window.location.href = 'start.html';
+      }
+    } else {
+      document.getElementById('msg').innerText = data.message;
+    }
+  });
+}
+</script>
+</body>
+</html>

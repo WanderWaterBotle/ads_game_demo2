@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Watch Ad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      background: #0b3c91; 
+      color: #fff; 
+      font-family: Arial; 
+      text-align: center; 
+      padding-top: 100px; 
+    }
+    #timer { 
+      font-size: 2rem; 
+      margin-bottom: 30px;
+    }
+    button { 
+      padding: 15px 30px; 
+      font-size: 1.2rem; 
+      border: none; 
+      border-radius: 25px; 
+      background: gray; 
+      color: #fff; 
+      cursor: not-allowed;
+    }
+    button.active {
+      background: green;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Watching Ad...</h1>
+<h1>No ads avaliable.But you can still earnn anyway</h1>
+<div id="timer">60</div>
+<button id="completeBtn" disabled>Complete Ad</button>
+
+<script>
+const username = localStorage.getItem('username');
+if (!username) {
+  alert("No user detected, please login again!");
+  window.location.href = "index.html";
+}
+
+let totalActiveSeconds = 0;
+let intervalId = null;
+const timerElement = document.getElementById('timer');
+const button = document.getElementById('completeBtn');
+
+// 只在页面 focus 时才计时
+function startCounting() {
+  if (!intervalId) {
+    intervalId = setInterval(() => {
+      totalActiveSeconds++;
+      timerElement.innerText = 60 - totalActiveSeconds;
+
+      if (totalActiveSeconds >= 60) {
+        clearInterval(intervalId);
+        button.disabled = false;
+        button.classList.add('active');
+        button.innerText = "Complete Ad and Return";
+      }
+    }, 1000);
+  }
+}
+
+function stopCounting() {
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
+}
+
+// 页面激活和失焦监听
+window.addEventListener('focus', startCounting);
+window.addEventListener('blur', stopCounting);
+
+// 初始进入页面时也检查是否有焦点
+if (document.hasFocus()) {
+  startCounting();
+}
+
+button.addEventListener('click', () => {
+  if (button.disabled) return;
+
+  fetch('/api/watch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username })
+  })
+  .then(() => {
+    alert("Ad completed! Returning to competition...");
+    window.location.href = 'competition.html';
+  });
+});
+</script>
+
+</body>
+</html>
